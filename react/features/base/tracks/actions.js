@@ -156,7 +156,8 @@ export function destroyLocalTracks() {
         // First wait until any getUserMedia in progress is settled and then get
         // rid of all local tracks.
         _cancelAllGumInProgress(getState)
-            .then(dispatch(
+            .then(
+                () => dispatch(
                     _disposeAndRemoveTracks(
                         getState()['features/base/tracks']
                             .filter(t => t.local)
@@ -404,7 +405,8 @@ function _cancelAllGumInProgress(getState) {
 export function _disposeAndRemoveTracks(tracks) {
     return dispatch =>
         _disposeTracks(tracks)
-            .then(Promise.all(tracks.map(t => dispatch(trackRemoved(t)))));
+            .then(
+                () => Promise.all(tracks.map(t => dispatch(trackRemoved(t)))));
 }
 
 /**
