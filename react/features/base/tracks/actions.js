@@ -112,7 +112,9 @@ export function createLocalTracksA(options = {}) {
                         if (gumProcess.canceled) {
                             return _disposeTracks(localTracks)
                                     .then(
-                                        dispatch(_trackCreateCanceled(device)));
+                                        () =>
+                                            dispatch(
+                                                _trackCreateCanceled(device)));
                         }
 
                         return dispatch(trackAdded(localTracks[0]));
