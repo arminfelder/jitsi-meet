@@ -155,13 +155,8 @@ export function destroyLocalTracks() {
     return (dispatch, getState) => {
         // First wait until any getUserMedia in progress is settled and then get
         // rid of all local tracks.
-        Promise
-            .all(
-                getState()['features/base/tracks']
-                    .filter(t => t.local)
-                    .map(t => t.gumProcess && t.gumProcess.cancel()))
-            .then(
-                dispatch(
+        _cancelAllGumInProgress(getState)
+            .then(dispatch(
                     _disposeAndRemoveTracks(
                         getState()['features/base/tracks']
                             .filter(t => t.local)
@@ -371,6 +366,32 @@ export function trackVideoTypeChanged(track, videoType) {
  */
 function _addTracks(tracks) {
     return dispatch => Promise.all(tracks.map(t => dispatch(trackAdded(t))));
+}
+
+/**
+ * Cancels and waits for any get user media operations currently in progress to
+ * complete.
+ *
+ * @param {Function} getState - The Redux store {@code getState} method used to
+ * obtain the state.
+ * @returns {Promise} - A Promise resolved once all {@code gumProcess.cancel}
+ * Promises are settled. That is when they are either resolved or rejected,
+ * because all we care about here is to be sure that get user media callbacks
+ * have completed (returned from the native side).
+ * @private
+ */
+function _cancelAllGumInProgress(getState) {
+    // FIXME use logger
+    const logError
+        = error =>
+            console.error('gumProcess.cancel failed', JSON.stringify(error));
+
+    return Promise.all(
+        getState()['features/base/tracks']
+            .filter(t => t.local)
+            .map(
+                t => t.gumProcess
+                    && t.gumProcess.cancel().catch(logError)));
 }
 
 /**
